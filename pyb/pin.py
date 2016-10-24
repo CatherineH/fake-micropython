@@ -2,6 +2,23 @@
 """
 Fake pin object.
 """
+from sys import stdin
+from threading import Thread
+
+
+class KeyboardPoller(Thread):
+    def __init__(self, target='q'):
+        super(KeyboardPoller, self).__init__()
+        self.pressed = False
+        self.target = target
+
+    def run(self):
+        global key_pressed
+        ch = stdin.read(1)
+        if ch == self.target:# the key you are interested in
+            self.pressed = True
+        else:
+            self.pressed = False
 
 
 class Pin(object):
@@ -24,6 +41,12 @@ class Pin(object):
             raise ValueError("Pin not found")
         self._pin_name = pin_name
         self._pin_type = pin_type
+        if self._pin_type == self.IN:
+            
+            self.poller = KeyboardPoller(target)
+            self.poller.start()
+        else:
+            self.poller = None
 
     def low(self):
         if self._pin_type == self.IN:
@@ -32,4 +55,9 @@ class Pin(object):
     def high(self):
         if self._pin_type == self.IN:
             raise ValueError("Pin type is set to input!")
+
+    def value(self):
+        if self._pin_type == self.OUT:
+            raise ValueError("Pin type is set to output!")
+        return 0
 
